@@ -6,9 +6,9 @@
 - Unit and integration tests for the API
 
 ## Phase 2 - Data layer
-- Replace the in-memory repository with a SQLAlchemy or SQLModel implementation
-- Alembic migrations
+- SQLite persistence implemented for the MVP
 - Environment-based config (`DATABASE_URL`, `APP_ENV`)
+- Next step: upgrade the repository layer to SQLAlchemy and add Alembic migrations
 
 ## Phase 3 - Frontend MVP
 - React + TypeScript UI

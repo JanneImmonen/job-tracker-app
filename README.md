@@ -11,7 +11,7 @@ Build an application that helps users stay organized during a job search by supp
 
 ## Current Scope
 
-- `backend/`: FastAPI-based REST API MVP
+- `backend/`: FastAPI-based REST API MVP with SQLite persistence
 - `docs/implementation-plan.md`: step-by-step roadmap for the next phases
 
 ## Quickstart
@@ -27,6 +27,9 @@ uvicorn app.main:app --app-dir backend --reload
 The API will be available at `http://127.0.0.1:8000`.
 Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
 
+By default, the API stores data in `backend/data/job_tracker.db`.
+You can override the database location with `DATABASE_URL=sqlite:////absolute/path/to/job_tracker.db`.
+
 ## Available Endpoints
 
 - `GET /health`
@@ -40,13 +43,15 @@ Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
 
 - FastAPI application with a small, focused CRUD API
 - Pydantic schemas for request and response validation
-- In-memory repository for rapid MVP development
-- API tests covering the main job lifecycle
+- SQLite-backed repository with local file persistence
+- Environment-based configuration via `DATABASE_URL` and `APP_ENV`
+- API tests covering CRUD, persistence, and validation rules
 
 ## Next Steps
 
-1. Add persistent storage with SQLite or PostgreSQL and Alembic migrations
+1. Add SQLAlchemy and Alembic migrations for a more scalable data layer
 2. Introduce authentication and user scoping
 3. Build a React + TypeScript frontend
-4. Add CI for linting, testing, and builds
-5. Prepare deployment for staging and production
+4. Add filtering, sorting, and search for the jobs list
+5. Add CI for linting, testing, and builds
+6. Prepare deployment for staging and production

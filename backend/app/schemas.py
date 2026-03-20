@@ -1,11 +1,11 @@
 from datetime import date, datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 
-class JobStatus(StrEnum):
+class JobStatus(str, Enum):
     SAVED = "saved"
     APPLIED = "applied"
     INTERVIEW = "interview"
@@ -20,9 +20,17 @@ class JobBase(BaseModel):
     salary_min: Optional[int] = Field(default=None, ge=0)
     salary_max: Optional[int] = Field(default=None, ge=0)
     status: JobStatus = JobStatus.SAVED
-    source_url: Optional[str] = Field(default=None, max_length=500)
+    source_url: Optional[HttpUrl] = Field(default=None)
     notes: Optional[str] = Field(default=None, max_length=2_000)
     applied_on: Optional[date] = None
+
+    @model_validator(mode="after")
+    def validate_business_rules(self) -> "JobBase":
+        if self.salary_min is not None and self.salary_max is not None and self.salary_max < self.salary_min:
+            raise ValueError("salary_max must be greater than or equal to salary_min")
+        if self.status != JobStatus.SAVED and self.applied_on is None:
+            raise ValueError("applied_on is required when status is not saved")
+        return self
 
 
 class JobCreate(JobBase):
@@ -36,7 +44,7 @@ class JobUpdate(BaseModel):
     salary_min: Optional[int] = Field(default=None, ge=0)
     salary_max: Optional[int] = Field(default=None, ge=0)
     status: Optional[JobStatus] = None
-    source_url: Optional[str] = Field(default=None, max_length=500)
+    source_url: Optional[HttpUrl] = Field(default=None)
     notes: Optional[str] = Field(default=None, max_length=2_000)
     applied_on: Optional[date] = None
 

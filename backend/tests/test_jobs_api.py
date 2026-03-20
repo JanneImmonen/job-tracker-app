@@ -1,44 +1,139 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import create_app
+from app.repository import JobRepository
 
 
-client = TestClient(app)
+def create_client(db_path: Path) -> TestClient:
+    return TestClient(create_app(repository=JobRepository(db_path)))
 
 
 def test_healthcheck() -> None:
-    response = client.get("/health")
+    with TemporaryDirectory() as tmp_dir:
+        with create_client(Path(tmp_dir) / "jobs.db") as client:
+            response = client.get("/health")
+
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
 def test_create_list_update_and_delete_job() -> None:
-    payload = {
-        "company": "OpenAI",
-        "role": "Software Engineer",
-        "location": "Remote",
-        "status": "saved",
-    }
+    with TemporaryDirectory() as tmp_dir:
+        with create_client(Path(tmp_dir) / "jobs.db") as client:
+            create_response = client.post(
+                "/api/jobs",
+                json={
+                    "company": "OpenAI",
+                    "role": "Software Engineer",
+                    "location": "Remote",
+                    "status": "saved",
+                    "source_url": "https://openai.com/careers",
+                },
+            )
+            assert create_response.status_code == 201
+            created = create_response.json()
+            assert created["id"] > 0
+            assert created["company"] == "OpenAI"
 
-    create_response = client.post("/api/jobs", json=payload)
-    assert create_response.status_code == 201
-    created = create_response.json()
-    assert created["id"] > 0
-    assert created["company"] == "OpenAI"
+            list_response = client.get("/api/jobs")
+            assert list_response.status_code == 200
+            assert any(job["id"] == created["id"] for job in list_response.json())
 
-    list_response = client.get("/api/jobs")
+            patch_response = client.patch(
+                f"/api/jobs/{created['id']}",
+                json={
+                    "status": "interview",
+                    "applied_on": "2026-03-20",
+                    "notes": "Recruiter call scheduled",
+                },
+            )
+            assert patch_response.status_code == 200
+            assert patch_response.json()["status"] == "interview"
+
+            clear_notes_response = client.patch(
+                f"/api/jobs/{created['id']}",
+                json={"notes": None},
+            )
+            assert clear_notes_response.status_code == 200
+            assert clear_notes_response.json()["notes"] is None
+
+            delete_response = client.delete(f"/api/jobs/{created['id']}")
+            assert delete_response.status_code == 204
+
+            missing_response = client.get(f"/api/jobs/{created['id']}")
+            assert missing_response.status_code == 404
+
+
+def test_jobs_persist_across_app_instances() -> None:
+    with TemporaryDirectory() as tmp_dir:
+        database_path = Path(tmp_dir) / "jobs.db"
+
+        with create_client(database_path) as first_client:
+            create_response = first_client.post(
+                "/api/jobs",
+                json={
+                    "company": "Anthropic",
+                    "role": "Backend Engineer",
+                    "status": "applied",
+                    "applied_on": "2026-03-18",
+                },
+            )
+
+        assert create_response.status_code == 201
+        created_id = create_response.json()["id"]
+
+        with create_client(database_path) as second_client:
+            list_response = second_client.get("/api/jobs")
+
     assert list_response.status_code == 200
-    assert any(job["id"] == created["id"] for job in list_response.json())
+    assert [job["id"] for job in list_response.json()] == [created_id]
 
-    patch_response = client.patch(
-        f"/api/jobs/{created['id']}",
-        json={"status": "interview", "notes": "Recruiter call scheduled"},
-    )
-    assert patch_response.status_code == 200
-    assert patch_response.json()["status"] == "interview"
 
-    delete_response = client.delete(f"/api/jobs/{created['id']}")
-    assert delete_response.status_code == 204
+def test_create_job_rejects_invalid_business_rules() -> None:
+    with TemporaryDirectory() as tmp_dir:
+        with create_client(Path(tmp_dir) / "jobs.db") as client:
+            missing_applied_on_response = client.post(
+                "/api/jobs",
+                json={
+                    "company": "OpenAI",
+                    "role": "Engineer",
+                    "status": "applied",
+                },
+            )
+            invalid_salary_response = client.post(
+                "/api/jobs",
+                json={
+                    "company": "OpenAI",
+                    "role": "Engineer",
+                    "salary_min": 6000,
+                    "salary_max": 5000,
+                },
+            )
 
-    missing_response = client.get(f"/api/jobs/{created['id']}")
-    assert missing_response.status_code == 404
+    assert missing_applied_on_response.status_code == 422
+    assert invalid_salary_response.status_code == 422
+
+
+def test_patch_job_rejects_invalid_merged_state() -> None:
+    with TemporaryDirectory() as tmp_dir:
+        with create_client(Path(tmp_dir) / "jobs.db") as client:
+            create_response = client.post(
+                "/api/jobs",
+                json={
+                    "company": "OpenAI",
+                    "role": "Engineer",
+                    "status": "saved",
+                },
+            )
+            assert create_response.status_code == 201
+
+            job_id = create_response.json()["id"]
+            patch_response = client.patch(
+                f"/api/jobs/{job_id}",
+                json={"status": "offer"},
+            )
+
+    assert patch_response.status_code == 422
