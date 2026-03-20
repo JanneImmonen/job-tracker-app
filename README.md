@@ -1,18 +1,21 @@
 # Job Tracker App
 
-Tämä repository sisältää **teknisesti hyvän lähtöpohjan** job-tracker-sovellukselle.
+Job Tracker App is a backend MVP for tracking job applications and the progress of each opportunity through the hiring pipeline.
 
-## Tavoite
-Rakentaa sovellus, jolla työnhaku pysyy hallinnassa:
-- työpaikkojen tallennus (company, role, status, muistiinpanot)
-- hakuprosessin vaiheet (saved → applied → interview → offer/rejected)
-- myöhemmin: dashboard, reminderit, analytiikka
+## Goal
 
-## Nykyinen sisältö
-- `backend/`: FastAPI-pohjainen REST API (MVP)
-- `docs/implementation-plan.md`: vaiheittainen toteutussuunnitelma
+Build an application that helps users stay organized during a job search by supporting:
+- storing job opportunities with core details such as company, role, status, and notes
+- tracking application stages from `saved` to `applied`, `interview`, `offer`, or `rejected`
+- expanding later into dashboards, reminders, and analytics
+
+## Current Scope
+
+- `backend/`: FastAPI-based REST API MVP
+- `docs/implementation-plan.md`: step-by-step roadmap for the next phases
 
 ## Quickstart
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -21,9 +24,11 @@ PYTHONPATH=backend pytest backend/tests
 uvicorn app.main:app --app-dir backend --reload
 ```
 
-API on tällöin osoitteessa `http://127.0.0.1:8000`.
+The API will be available at `http://127.0.0.1:8000`.
+Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
 
-## Ensimmäiset endpointit
+## Available Endpoints
+
 - `GET /health`
 - `GET /api/jobs`
 - `POST /api/jobs`
@@ -31,9 +36,17 @@ API on tällöin osoitteessa `http://127.0.0.1:8000`.
 - `PATCH /api/jobs/{job_id}`
 - `DELETE /api/jobs/{job_id}`
 
-## Seuraavat askeleet
-1. Persistenssi SQLite/PostgreSQL + Alembic-migraatiot
-2. Auth (esim. Clerk/Supabase Auth/JWT)
-3. Frontend (React + TypeScript)
-4. CI (lint + testit + build)
-5. Deploy (Render/Fly/Vercel + managed DB)
+## Current Architecture
+
+- FastAPI application with a small, focused CRUD API
+- Pydantic schemas for request and response validation
+- In-memory repository for rapid MVP development
+- API tests covering the main job lifecycle
+
+## Next Steps
+
+1. Add persistent storage with SQLite or PostgreSQL and Alembic migrations
+2. Introduce authentication and user scoping
+3. Build a React + TypeScript frontend
+4. Add CI for linting, testing, and builds
+5. Prepare deployment for staging and production
