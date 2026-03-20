@@ -1,10 +1,9 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from fastapi.testclient import TestClient
-
 from app.main import create_app
 from app.repository import JobRepository
+from fastapi.testclient import TestClient
 
 
 def create_client(db_path: Path) -> TestClient:

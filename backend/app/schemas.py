@@ -26,7 +26,11 @@ class JobBase(BaseModel):
 
     @model_validator(mode="after")
     def validate_business_rules(self) -> "JobBase":
-        if self.salary_min is not None and self.salary_max is not None and self.salary_max < self.salary_min:
+        if (
+            self.salary_min is not None
+            and self.salary_max is not None
+            and self.salary_max < self.salary_min
+        ):
             raise ValueError("salary_max must be greater than or equal to salary_min")
         if self.status != JobStatus.SAVED and self.applied_on is None:
             raise ValueError("applied_on is required when status is not saved")

@@ -1,6 +1,6 @@
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
 from threading import Lock
 from typing import Optional, Tuple, Union
 

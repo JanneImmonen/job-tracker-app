@@ -23,6 +23,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 python --version
 pip install -r backend/requirements.txt
+ruff check .
+ruff format --check .
 DATABASE_URL=sqlite:////tmp/job-tracker-local.db PYTHONPATH=backend pytest -p no:cacheprovider backend/tests
 uvicorn app.main:app --app-dir backend --reload
 ```
@@ -50,6 +52,7 @@ You can override the database location with `DATABASE_URL=sqlite:////absolute/pa
 - Pydantic schemas for request and response validation
 - SQLite-backed repository with local file persistence
 - Environment-based configuration via `DATABASE_URL` and `APP_ENV`
+- Ruff linting and formatting checks
 - API tests covering CRUD, persistence, and validation rules
 
 ## Next Steps
@@ -58,5 +61,5 @@ You can override the database location with `DATABASE_URL=sqlite:////absolute/pa
 2. Introduce authentication and user scoping
 3. Build a React + TypeScript frontend
 4. Add filtering, sorting, and search for the jobs list
-5. Add linting and formatting checks
+5. Add pre-commit hooks for local quality checks
 6. Prepare deployment for staging and production

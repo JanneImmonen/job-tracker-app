@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import unquote
-
 
 DEFAULT_DATABASE_PATH = Path(__file__).resolve().parents[1] / "data" / "job_tracker.db"
 

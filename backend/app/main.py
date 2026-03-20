@@ -1,7 +1,8 @@
-from fastapi.encoders import jsonable_encoder
-from fastapi import FastAPI, HTTPException, Request, Response, status
-from pydantic import ValidationError
 from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi.encoders import jsonable_encoder
+from pydantic import ValidationError
 
 from .config import load_config
 from .repository import JobRepository

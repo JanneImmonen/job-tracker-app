@@ -2,5 +2,6 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
+.ruff_cache/
 backend/data/*.db
 backend/data/*.db-*
