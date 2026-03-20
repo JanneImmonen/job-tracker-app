@@ -23,5 +23,5 @@
 
 ## Phase 5 - Delivery
 - Docker images
-- CI pipeline
+- CI pipeline for backend test runs
 - Staging + production deployment

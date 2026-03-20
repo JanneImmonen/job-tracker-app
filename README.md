@@ -16,13 +16,18 @@ Build an application that helps users stay organized during a job search by supp
 
 ## Quickstart
 
+This project targets Python `3.12.x` and includes a pinned `.python-version` for local tooling such as `pyenv`.
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+python --version
 pip install -r backend/requirements.txt
-PYTHONPATH=backend pytest backend/tests
+DATABASE_URL=sqlite:////tmp/job-tracker-local.db PYTHONPATH=backend pytest -p no:cacheprovider backend/tests
 uvicorn app.main:app --app-dir backend --reload
 ```
+
+Make sure `python --version` reports Python `3.12.x` before installing dependencies.
 
 The API will be available at `http://127.0.0.1:8000`.
 Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
@@ -53,5 +58,5 @@ You can override the database location with `DATABASE_URL=sqlite:////absolute/pa
 2. Introduce authentication and user scoping
 3. Build a React + TypeScript frontend
 4. Add filtering, sorting, and search for the jobs list
-5. Add CI for linting, testing, and builds
+5. Add linting and formatting checks
 6. Prepare deployment for staging and production
