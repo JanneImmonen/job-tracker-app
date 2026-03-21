@@ -24,14 +24,15 @@ Backend:
 python3 -m venv .venv
 source .venv/bin/activate
 python --version
-pip install -r backend/requirements.txt
+.venv/bin/python -m pip install -r backend/requirements.txt
 ruff check .
 ruff format --check .
-DATABASE_URL=sqlite:////tmp/job-tracker-local.db PYTHONPATH=backend pytest -p no:cacheprovider backend/tests
-uvicorn app.main:app --app-dir backend --reload
+DATABASE_URL=sqlite:////tmp/job-tracker-local.db PYTHONPATH=backend .venv/bin/python -m pytest -p no:cacheprovider backend/tests
+DATABASE_URL=sqlite:////tmp/job-tracker-local.db .venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 ```
 
 Make sure `python --version` reports Python `3.12.x` before installing dependencies.
+Using `.venv/bin/python -m ...` is the safest option if your shell does not resolve commands like `uvicorn` directly after activation.
 
 Frontend:
 ```bash
@@ -48,10 +49,30 @@ Make sure `node --version` reports at least `v22.12.0`.
 
 The API will be available at `http://127.0.0.1:8000`.
 Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
-The frontend dev server runs at `http://127.0.0.1:5173`.
+The frontend dev server runs at `http://localhost:5173`.
 
 By default, the API stores data in `backend/data/job_tracker.db`.
 You can override the database location with `DATABASE_URL=sqlite:////absolute/path/to/job_tracker.db`.
+
+## Run Locally
+
+Terminal 1, backend:
+```bash
+cd /Users/immonenjanne/Desktop/job-tracker-app
+source .venv/bin/activate
+DATABASE_URL=sqlite:////tmp/job-tracker-local.db .venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+```
+
+Terminal 2, frontend:
+```bash
+cd /Users/immonenjanne/Desktop/job-tracker-app/frontend
+npm install
+npm run dev
+```
+
+Open these in the browser:
+- frontend: `http://localhost:5173`
+- backend docs: `http://127.0.0.1:8000/docs`
 
 ## Available Endpoints
 
