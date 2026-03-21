@@ -41,6 +41,7 @@ You can override the database location with `DATABASE_URL=sqlite:////absolute/pa
 
 - `GET /health`
 - `GET /api/jobs`
+- `GET /api/jobs?status=applied&company=open&q=engineer&sort_by=company&order=asc`
 - `POST /api/jobs`
 - `GET /api/jobs/{job_id}`
 - `PATCH /api/jobs/{job_id}`
@@ -51,6 +52,7 @@ You can override the database location with `DATABASE_URL=sqlite:////absolute/pa
 - FastAPI application with a small, focused CRUD API
 - Pydantic schemas for request and response validation
 - SQLite-backed repository with local file persistence
+- Queryable job list with filtering, search, and sorting
 - Environment-based configuration via `DATABASE_URL` and `APP_ENV`
 - Ruff linting and formatting checks
 - API tests covering CRUD, persistence, and validation rules
@@ -60,6 +62,6 @@ You can override the database location with `DATABASE_URL=sqlite:////absolute/pa
 1. Add SQLAlchemy and Alembic migrations for a more scalable data layer
 2. Introduce authentication and user scoping
 3. Build a React + TypeScript frontend
-4. Add filtering, sorting, and search for the jobs list
+4. Add pagination and richer dashboard metrics
 5. Add pre-commit hooks for local quality checks
 6. Prepare deployment for staging and production

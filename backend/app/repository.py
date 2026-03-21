@@ -2,12 +2,20 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
-from typing import Optional, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 
-from .schemas import JobCreate, JobRead, JobUpdate
+from .schemas import JobCreate, JobRead, JobStatus, JobUpdate
 
 
 class JobRepository:
+    SORT_COLUMNS = {
+        "created_at": "created_at",
+        "updated_at": "updated_at",
+        "company": "LOWER(company)",
+        "applied_on": "COALESCE(applied_on, '')",
+        "status": "status",
+    }
+
     def __init__(self, db_path: Union[str, Path]) -> None:
         self._db_path = Path(db_path)
         self._lock = Lock()
@@ -59,15 +67,53 @@ class JobRepository:
             job.updated_at.isoformat(),
         )
 
-    def list(self) -> list[JobRead]:
+    def list(
+        self,
+        status_filter: Optional[JobStatus] = None,
+        company: Optional[str] = None,
+        q: Optional[str] = None,
+        sort_by: Literal[
+            "created_at",
+            "updated_at",
+            "company",
+            "applied_on",
+            "status",
+        ] = "created_at",
+        order: Literal["asc", "desc"] = "desc",
+    ) -> list[JobRead]:
+        conditions = []
+        parameters: list[object] = []
+
+        if status_filter is not None:
+            conditions.append("status = ?")
+            parameters.append(status_filter.value)
+
+        if company is not None:
+            conditions.append("LOWER(company) LIKE LOWER(?)")
+            parameters.append(f"%{company}%")
+
+        if q is not None:
+            conditions.append(
+                "(LOWER(company) LIKE LOWER(?) OR LOWER(role) LIKE LOWER(?) OR "
+                "LOWER(location) LIKE LOWER(?) OR LOWER(COALESCE(notes, '')) LIKE LOWER(?))"
+            )
+            search_value = f"%{q}%"
+            parameters.extend([search_value, search_value, search_value, search_value])
+
+        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        sort_column = self.SORT_COLUMNS[sort_by]
+        sort_order = order.upper()
+
         with self._connect() as connection:
             rows = connection.execute(
-                """
+                f"""
                 SELECT id, company, role, location, salary_min, salary_max, status,
                        source_url, notes, applied_on, created_at, updated_at
                 FROM jobs
-                ORDER BY created_at DESC, id DESC
-                """
+                {where_clause}
+                ORDER BY {sort_column} {sort_order}, id DESC
+                """,
+                parameters,
             ).fetchall()
         return [self._row_to_job(row) for row in rows]
 

@@ -1,16 +1,16 @@
-from typing import Optional
+from typing import Literal, Optional
 
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import ValidationError
 
 from .config import load_config
 from .repository import JobRepository
-from .schemas import JobCreate, JobRead, JobUpdate
+from .schemas import JobCreate, JobRead, JobStatus, JobUpdate
 
 
 def create_app(repository: Optional[JobRepository] = None) -> FastAPI:
-    app = FastAPI(title="Job Tracker API", version="0.2.0")
+    app = FastAPI(title="Job Tracker API", version="0.3.0")
     if repository is None:
         config = load_config()
         repository = JobRepository(config.database_path)
@@ -24,8 +24,27 @@ def create_app(repository: Optional[JobRepository] = None) -> FastAPI:
         return {"status": "ok"}
 
     @app.get("/api/jobs", response_model=list[JobRead])
-    def list_jobs(request: Request) -> list[JobRead]:
-        return get_repository(request).list()
+    def list_jobs(
+        request: Request,
+        status_filter: Optional[JobStatus] = Query(default=None, alias="status"),
+        company: Optional[str] = Query(default=None, min_length=1, max_length=150),
+        q: Optional[str] = Query(default=None, min_length=1, max_length=150),
+        sort_by: Literal[
+            "created_at",
+            "updated_at",
+            "company",
+            "applied_on",
+            "status",
+        ] = "created_at",
+        order: Literal["asc", "desc"] = "desc",
+    ) -> list[JobRead]:
+        return get_repository(request).list(
+            status_filter=status_filter,
+            company=company,
+            q=q,
+            sort_by=sort_by,
+            order=order,
+        )
 
     @app.post("/api/jobs", response_model=JobRead, status_code=status.HTTP_201_CREATED)
     def create_job(payload: JobCreate, request: Request) -> JobRead:

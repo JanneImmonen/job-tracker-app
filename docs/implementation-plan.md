@@ -17,7 +17,7 @@
 
 ## Phase 4 - Product quality
 - Authentication and user scoping
-- Filtering, sorting, and search
+- Pagination and richer query options
 - Dashboard metrics (applications per week, response rate)
 - Observability: structured logging + error tracking
 

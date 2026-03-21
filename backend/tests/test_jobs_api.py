@@ -91,6 +91,63 @@ def test_jobs_persist_across_app_instances() -> None:
     assert [job["id"] for job in list_response.json()] == [created_id]
 
 
+def test_list_jobs_supports_filtering_search_and_sorting() -> None:
+    with TemporaryDirectory() as tmp_dir:
+        with create_client(Path(tmp_dir) / "jobs.db") as client:
+            seed_jobs = [
+                {
+                    "company": "OpenAI",
+                    "role": "Platform Engineer",
+                    "location": "Remote",
+                    "status": "saved",
+                    "notes": "Interesting infrastructure role",
+                },
+                {
+                    "company": "Anthropic",
+                    "role": "Research Engineer",
+                    "location": "London",
+                    "status": "applied",
+                    "applied_on": "2026-03-10",
+                    "notes": "Strong fit for reasoning systems",
+                },
+                {
+                    "company": "GitHub",
+                    "role": "Developer Advocate",
+                    "location": "Remote",
+                    "status": "interview",
+                    "applied_on": "2026-03-05",
+                    "notes": "Developer tooling and community work",
+                },
+            ]
+
+            for job in seed_jobs:
+                create_response = client.post("/api/jobs", json=job)
+                assert create_response.status_code == 201
+
+            applied_response = client.get("/api/jobs", params={"status": "applied"})
+            assert applied_response.status_code == 200
+            assert [job["company"] for job in applied_response.json()] == ["Anthropic"]
+
+            company_response = client.get("/api/jobs", params={"company": "hub"})
+            assert company_response.status_code == 200
+            assert [job["company"] for job in company_response.json()] == ["GitHub"]
+
+            search_response = client.get("/api/jobs", params={"q": "engineer"})
+            assert search_response.status_code == 200
+            assert [job["company"] for job in search_response.json()] == ["Anthropic", "OpenAI"]
+
+            sort_response = client.get(
+                "/api/jobs",
+                params={"sort_by": "company", "order": "asc"},
+            )
+            assert sort_response.status_code == 200
+            assert [job["company"] for job in sort_response.json()] == [
+                "Anthropic",
+                "GitHub",
+                "OpenAI",
+            ]
+
+
 def test_create_job_rejects_invalid_business_rules() -> None:
     with TemporaryDirectory() as tmp_dir:
         with create_client(Path(tmp_dir) / "jobs.db") as client:
