@@ -21,6 +21,13 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -38,3 +45,11 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
           PYTHONPATH: backend
         run: pytest -p no:cacheprovider backend/tests
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build

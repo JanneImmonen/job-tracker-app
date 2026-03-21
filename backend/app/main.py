@@ -2,6 +2,7 @@ from typing import Literal, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError
 
 from .config import load_config
@@ -11,6 +12,18 @@ from .schemas import JobCreate, JobRead, JobStatus, JobUpdate
 
 def create_app(repository: Optional[JobRepository] = None) -> FastAPI:
     app = FastAPI(title="Job Tracker API", version="0.3.0")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:4173",
+            "http://127.0.0.1:4173",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     if repository is None:
         config = load_config()
         repository = JobRepository(config.database_path)

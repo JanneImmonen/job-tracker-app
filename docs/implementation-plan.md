@@ -11,9 +11,9 @@
 - Next step: upgrade the repository layer to SQLAlchemy and add Alembic migrations
 
 ## Phase 3 - Frontend MVP
-- React + TypeScript UI
+- React + TypeScript UI scaffolded with Vite
 - Job list + create/edit form + status badges
-- API client layer
+- Filtering UI and API client layer
 
 ## Phase 4 - Product quality
 - Authentication and user scoping

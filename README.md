@@ -12,12 +12,14 @@ Build an application that helps users stay organized during a job search by supp
 ## Current Scope
 
 - `backend/`: FastAPI-based REST API MVP with SQLite persistence
+- `frontend/`: React + TypeScript dashboard MVP powered by Vite
 - `docs/implementation-plan.md`: step-by-step roadmap for the next phases
 
 ## Quickstart
 
 This project targets Python `3.12.x` and includes a pinned `.python-version` for local tooling such as `pyenv`.
 
+Backend:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -31,8 +33,22 @@ uvicorn app.main:app --app-dir backend --reload
 
 Make sure `python --version` reports Python `3.12.x` before installing dependencies.
 
+Frontend:
+```bash
+cd frontend
+node --version
+npm install
+npm run build
+npm run dev
+```
+
+The frontend expects the API at `http://127.0.0.1:8000` by default.
+You can override it with `VITE_API_BASE_URL` or copy `frontend/.env.example` to a local `.env`.
+Make sure `node --version` reports at least `v22.12.0`.
+
 The API will be available at `http://127.0.0.1:8000`.
 Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
+The frontend dev server runs at `http://127.0.0.1:5173`.
 
 By default, the API stores data in `backend/data/job_tracker.db`.
 You can override the database location with `DATABASE_URL=sqlite:////absolute/path/to/job_tracker.db`.
@@ -49,19 +65,21 @@ You can override the database location with `DATABASE_URL=sqlite:////absolute/pa
 
 ## Current Architecture
 
-- FastAPI application with a small, focused CRUD API
+- FastAPI backend with a small, focused CRUD API
+- React + TypeScript frontend for job management
 - Pydantic schemas for request and response validation
 - SQLite-backed repository with local file persistence
 - Queryable job list with filtering, search, and sorting
 - Environment-based configuration via `DATABASE_URL` and `APP_ENV`
 - Ruff linting and formatting checks
 - API tests covering CRUD, persistence, and validation rules
+- Vite-powered frontend build pipeline
 
 ## Next Steps
 
 1. Add SQLAlchemy and Alembic migrations for a more scalable data layer
 2. Introduce authentication and user scoping
-3. Build a React + TypeScript frontend
+3. Add delete actions and richer job detail views in the frontend
 4. Add pagination and richer dashboard metrics
 5. Add pre-commit hooks for local quality checks
 6. Prepare deployment for staging and production
